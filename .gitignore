@@ -1,0 +1,20 @@
+# PyTorch model weights
+*.pth
+*.pt
+*.ckpt
+
+# Compressed datasets
+*.tar.gz
+
+# Dataset directories
+**/data/
+**/data_new/
+**/dataset/
+
+# Training logs
+**/logs/
+**/runs/
+
+# Python
+__pycache__/
+*.py[cod]
