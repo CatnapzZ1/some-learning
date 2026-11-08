@@ -57,7 +57,6 @@ class Tokenizer:
 
         for text in iterable:
             yield from self.encode(text)
-            # ce
 
     def _encode_pretoken(self, pretoken: str) -> list[int]:
 
