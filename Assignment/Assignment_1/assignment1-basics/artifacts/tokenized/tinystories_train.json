@@ -1,0 +1,52 @@
+{
+  "identity": {
+    "source": {
+      "path": "/home/catnap/projects/some-learinigs/Assignment/Assignment_1/assignment1-basics/data/TinyStoriesV2-GPT4-train.txt",
+      "bytes": 1780701061,
+      "mtime_ns": 1791554604523669858
+    },
+    "model": {
+      "path": "/home/catnap/projects/some-learinigs/Assignment/Assignment_1/assignment1-basics/artifacts/tinystories_bpe_parallel.pkl",
+      "sha256": "8f1fe0342c5761561b93079333b11ff7602508b440ea73d95cda718e29bc04cf"
+    },
+    "code_sha256": {
+      "encode_dataset.py": "cc2cec402fa53c94a13ec200c71e7ba3b046d2c0b8694f343ff339f31602a0e7",
+      "experiment_tokenizer_a.py": "87aa746aca55e0ecde2943ca7d92d8ca47cb1c38721572b7e20b735588c15855",
+      "cs336_basics/tokenizer.py": "290d0d15de0198a78613fb4ed6d3a137aaf6c4f557def8dfcae110371ef9b393"
+    },
+    "dtype": "<u2",
+    "separator": "<|endoftext|>"
+  },
+  "input_bytes": 1780701061,
+  "tokens": 432616992,
+  "chunks": 1700,
+  "special_tokens": 2172439,
+  "min_id": 9,
+  "max_id": 9999,
+  "recorded_seconds": 187.768522802,
+  "input_sha256": "1daf1eae47b9802fac8c9848d65d6b9afe4f36cefd2c58336c3806597566db1b",
+  "payload_sha256": "9a0bf527e6dda5e3543242c3412e0ec3c33358ecdb3ff31161efde9308e7a20e",
+  "runs": [
+    {
+      "started_at_utc": "2026-11-08T12:44:18.904837+00:00",
+      "workers": 8,
+      "chunk_mib": 1,
+      "max_chunk_mib": 32,
+      "resume_input_bytes": 0
+    }
+  ],
+  "output": {
+    "path": "/home/catnap/projects/some-learinigs/Assignment/Assignment_1/assignment1-basics/artifacts/tokenized/tinystories_train.npy",
+    "shape": [
+      432616992
+    ],
+    "dtype": "<u2",
+    "file_bytes": 865234112,
+    "sha256": "ef5a48164c659abdff0bbc366bdc94fdaba1aaed09ec1dfa9f3371c7e94afd92"
+  },
+  "checks": {
+    "roundtrip": "every input chunk",
+    "special_token_count": "every input chunk",
+    "npy_payload_sha256": "matched"
+  }
+}

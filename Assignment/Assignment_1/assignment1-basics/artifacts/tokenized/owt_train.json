@@ -1,0 +1,52 @@
+{
+  "identity": {
+    "source": {
+      "path": "/home/catnap/projects/some-learinigs/Assignment/Assignment_1/assignment1-basics/data/owt_train.txt",
+      "bytes": 11920511059,
+      "mtime_ns": 1794060012138431533
+    },
+    "model": {
+      "path": "/home/catnap/projects/some-learinigs/Assignment/Assignment_1/assignment1-basics/artifacts/owt_bpe_32000.pkl",
+      "sha256": "64a686ae1e54fcc8c82979de63a081aba2d03b4fa01d5d2410ddc125047e2726"
+    },
+    "code_sha256": {
+      "encode_dataset.py": "cc2cec402fa53c94a13ec200c71e7ba3b046d2c0b8694f343ff339f31602a0e7",
+      "experiment_tokenizer_a.py": "87aa746aca55e0ecde2943ca7d92d8ca47cb1c38721572b7e20b735588c15855",
+      "cs336_basics/tokenizer.py": "290d0d15de0198a78613fb4ed6d3a137aaf6c4f557def8dfcae110371ef9b393"
+    },
+    "dtype": "<u2",
+    "separator": "<|endoftext|>"
+  },
+  "input_bytes": 11920511059,
+  "tokens": 2727120452,
+  "chunks": 11369,
+  "special_tokens": 2399397,
+  "min_id": 10,
+  "max_id": 31999,
+  "recorded_seconds": 1583.6334680230002,
+  "input_sha256": "bbeb7f291a981ecfd5cf44b84d0f654b9e96c53dff99f2556b7d2cccaf8c1918",
+  "payload_sha256": "e736315eb244aa6adbbceea6ab0651cc544bc094adc4071763c97e99c241ca6c",
+  "runs": [
+    {
+      "started_at_utc": "2026-11-08T12:47:56.507192+00:00",
+      "workers": 8,
+      "chunk_mib": 1,
+      "max_chunk_mib": 32,
+      "resume_input_bytes": 0
+    }
+  ],
+  "output": {
+    "path": "/home/catnap/projects/some-learinigs/Assignment/Assignment_1/assignment1-basics/artifacts/tokenized/owt_train.npy",
+    "shape": [
+      2727120452
+    ],
+    "dtype": "<u2",
+    "file_bytes": 5454241032,
+    "sha256": "72397c3cd5943e445977604f5d7a5c889e7a1ffe5ceb1e095253db0ab3343302"
+  },
+  "checks": {
+    "roundtrip": "every input chunk",
+    "special_token_count": "every input chunk",
+    "npy_payload_sha256": "matched"
+  }
+}

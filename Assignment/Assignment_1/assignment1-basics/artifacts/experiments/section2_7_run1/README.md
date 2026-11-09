@@ -36,10 +36,65 @@
 
 - (a)：TinyStories + TinyStories tokenizer、OpenWebText + OpenWebText tokenizer 两组测量均已完成；书面回答待自行整理。
 - (b)：同一批 OWT 文档的两种 tokenizer 测量均已完成，可对照表中后两行；书面分析待自行完成。
-- (c)：尚未测量编码吞吐量或估算 Pile 耗时。抽样扫描包括读取整个语料，不可直接当成编码吞吐量。
-- (d)：尚未生成四份全量训练／验证 token ID 序列。
+- (c)：已完成两种 tokenizer 的单进程编码吞吐量测量和 Pile 耗时估算，见下方记录。
+- (d)：四份完整训练／验证 token ID 序列均已生成，保存在 `artifacts/tokenized/`；输入及最终数组的完整文件哈希已独立复核。
 
 后续对比仍需要本目录的样本与日志，因此保留这些文件。
+
+## (c) 编码吞吐量
+
+运行 `benchmark_tokenizer.py`，使用本轮保存的各 10 篇文档。每个模型先预热一遍，再测量 3 轮，每轮至少 3 秒，取 bytes/second 的中位数。所有编码均调用现有 `Tokenizer.encode`。
+
+- 计时包含编码调用、样本遍历及返回列表长度统计；不含模型加载、JSON 读取、UTF-8 长度计算、哈希及文件写入。
+- 单进程；本机 CPU 为 Intel Core i9-14900HX。
+- 输入字节只包含此前抽样保存的正文，与 (a) 的统计口径相同。
+- Pile 大小按 825,000,000,000 bytes 计算，即十进制 GB。估算是基于少量样本文本和实测速率的线性外推，具体语料分布及运行环境会影响实际耗时。
+
+| 模型与样本 | 中位吞吐量（bytes/s） | 825 GB 估算小时 | 估算天数 |
+| --- | ---: | ---: | ---: |
+| TinyStories 10K / TinyStories 样本 | 1,220,151.20 | 187.82 | 7.83 |
+| OpenWebText 32K / OWT 样本 | 1,024,786.38 | 223.62 | 9.32 |
+
+```sh
+.venv/bin/python -u benchmark_tokenizer.py --model artifacts/tinystories_bpe_parallel.pkl --samples artifacts/experiments/section2_7_run1/tiny_samples.jsonl --output artifacts/experiments/section2_7_run1/c_tinystories.json --min-seconds 3
+.venv/bin/python -u benchmark_tokenizer.py --model artifacts/owt_bpe_32000.pkl --samples artifacts/experiments/section2_7_run1/owt_samples.jsonl --output artifacts/experiments/section2_7_run1/c_openwebtext.json --min-seconds 3
+```
+
+逐轮结果、模型／样本／代码哈希及环境信息保存在两个 `c_*.json` 文件中，控制台输出保存在同名 `.log` 文件中。
+
+## (d) 全量编码方式
+
+`encode_dataset.py` 调用现有 `Tokenizer.encode`，按完整 `<|endoftext|>` 之后的位置分块，保留原文件的所有分隔符、Unicode、换行及空白。使用 8 个工作进程，按输入顺序写出 token ID；待消费任务数最多为进程数的两倍，超过最大块限制时明确停止。
+
+输出为一维 little-endian `uint16` NPY，可通过 NumPy 的 mmap 方式读取。每份数组有同名 JSON，记录输入／模型／代码身份、原始字节数、token 数、ID 范围、特殊 token 数量、哈希和运行设置。每块均检查编码／解码往返及特殊 token 数量；落盘后检查 dtype、shape 和数据区哈希。
+
+中间 `.partial.u16` 与 `.progress.json` 用于恢复；中断后可对同一命令追加 `--resume`。完成并验证后自动清理中间文件，保留最终 `.npy` 与 `.json`。
+
+本轮辅助脚本验证：132 组边界测试的分块 ID 序列与整段编码一致；另外验证了超长无分隔符输入的失败、NPY 读回、检查点哈希拒绝、丢弃未提交尾部后的恢复、最终文件／manifest 发布中断后的恢复和空输入。
+
+这里的多进程全流水线耗时包含 I/O、校验和保存，与 (c) 的单进程纯编码计时口径不同。
+
+四份最终数组及实测信息：
+
+| 数组（位于 artifacts/tokenized/） | Token 数 | 实际 ID 范围 | 文件字节数（含 NPY 头） | 脚本记录耗时（秒） |
+| --- | ---: | --- | ---: | ---: |
+| tinystories_train.npy | 432,616,992 | 9–9,999 | 865,234,112 | 187.77 |
+| tinystories_valid.npy | 5,465,831 | 10–9,999 | 10,931,790 | 2.77 |
+| owt_train.npy | 2,727,120,452 | 10–31,999 | 5,454,241,032 | 1,583.63 |
+| owt_valid.npy | 66,401,098 | 10–31,999 | 132,802,324 | 37.16 |
+
+数组总大小为 6,463,209,258 bytes（约 6.02 GiB）。每份均为一维 `uint16`；同名 `.json` 是对应的来源及校验记录。这里记录的是实际 ID 范围，token 总数量单独作为数组长度保存。
+
+实际命令如下，标准输出及错误输出分别保存在本目录的四个 `d_*.log` 中：
+
+```sh
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -u encode_dataset.py --corpus data/TinyStoriesV2-GPT4-valid.txt --model artifacts/tinystories_bpe_parallel.pkl --output artifacts/tokenized/tinystories_valid.npy --workers 8
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -u encode_dataset.py --corpus data/owt_valid.txt --model artifacts/owt_bpe_32000.pkl --output artifacts/tokenized/owt_valid.npy --workers 8
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -u encode_dataset.py --corpus data/TinyStoriesV2-GPT4-train.txt --model artifacts/tinystories_bpe_parallel.pkl --output artifacts/tokenized/tinystories_train.npy --workers 8
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python -u encode_dataset.py --corpus data/owt_train.txt --model artifacts/owt_bpe_32000.pkl --output artifacts/tokenized/owt_train.npy --workers 8
+```
+
+完成后的独立复核：四份原始语料的 SHA-256 与逐块处理记录一致，四份 NPY 文件的 SHA-256 与 manifest 一致，模型哈希也一致；NumPy mmap 读回的 dtype、维度、shape、文件大小均匹配记录。全部 `.partial*`、`.progress.json*` 和 `.ready.json*` 中间文件已在成功后清理。
 
 ## OpenWebText 32K 训练
 
